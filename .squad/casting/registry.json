@@ -1,0 +1,9 @@
+{
+  "agents": {
+    "toru": { "persistent_name": "Toru", "universe": "custom", "created_at": "2026-08-16", "legacy_named": true, "status": "active" },
+    "cinnamon": { "persistent_name": "Cinnamon", "universe": "custom", "created_at": "2026-08-16", "legacy_named": true, "status": "active" },
+    "creta": { "persistent_name": "Creta", "universe": "custom", "created_at": "2026-08-16", "legacy_named": true, "status": "active" },
+    "malta": { "persistent_name": "Malta", "universe": "custom", "created_at": "2026-08-16", "legacy_named": true, "status": "active" },
+    "nutmeg": { "persistent_name": "Nutmeg", "universe": "custom", "created_at": "2026-08-16", "legacy_named": true, "status": "active" }
+  }
+}

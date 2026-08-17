@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="GoogleBooksApp.csproj" />
+  <Project Path="GoogleBooksApp.Tests/GoogleBooksApp.Tests.csproj" />
+</Solution>
