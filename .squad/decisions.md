@@ -245,3 +245,30 @@ Setting the route directly via `@page "/"` on `Books.cshtml` is the idiomatic Ra
 - Moved the shared Books page theme rules into the global stylesheet so the home route, Privacy page, Index page, and Error page inherit the same palette and typography.
 
 
+
+--- Inbox merge: toru-gitignore-update.md (LastWrite: 2026-08-16 23:45:03Z) ---
+
+# Decision: .gitignore updated for .NET / Visual Studio
+
+**Date:** 2026-08-16  
+**Author:** Toru (Architect)  
+**Status:** Accepted
+
+## Context
+
+The repo is being published to GitHub. The existing `.gitignore` only covered Squad runtime noise. Standard .NET/Visual Studio build artifacts (`bin/`, `obj/`, `.vs/`, etc.) were unguarded and would have been committed.
+
+## Decision
+
+Prepended a `# .NET / Visual Studio` section to `.gitignore` covering:
+- `[Bb]in/`, `[Oo]bj/` — build output directories
+- `.vs/` — Visual Studio local IDE state
+- `.idea/` — JetBrains Rider IDE state
+- `*.user`, `*.suo` — user-specific project files
+- `packages/` — NuGet packages restore folder
+- NuGet package artefacts (`*.nupkg`, `*.snupkg`, lock files)
+
+## Explicitly NOT ignored
+
+- `appsettings.json` — no longer contains secrets; real key lives in dotnet user-secrets (outside the repo). Safe and intentional to commit.
+- All `.squad/` content that should be committed (decisions, team, routing, agents, casting) — left untouched.
