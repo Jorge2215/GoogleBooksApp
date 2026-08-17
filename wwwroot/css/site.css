@@ -145,6 +145,35 @@ code {
   font-weight: 600;
 }
 
+.about-modal {
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+.about-modal__header {
+  background: linear-gradient(180deg, #f8fbff 0%, var(--color-surface-muted) 100%);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.about-modal__body {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.about-modal__body p {
+  margin: 0;
+  color: var(--color-text);
+}
+
+.about-modal__version {
+  color: var(--color-text-muted) !important;
+  font-size: 0.95rem;
+}
+
 .btn:focus,
 .btn:active:focus,
 .btn-link.nav-link:focus,

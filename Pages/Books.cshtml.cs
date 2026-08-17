@@ -1,5 +1,6 @@
 using GoogleBooksApp.Models.GoogleBooks;
 using GoogleBooksApp.Services.GoogleBooks;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -11,9 +12,11 @@ public sealed class BooksModel(IGoogleBooksService googleBooksService) : PageMod
 
     public const int PageSize = 10;
 
+    [Display(Name = "Title")]
     [BindProperty(SupportsGet = true)]
     public string? TitleQuery { get; set; }
 
+    [Display(Name = "Author")]
     [BindProperty(SupportsGet = true)]
     public string? AuthorQuery { get; set; }
 
