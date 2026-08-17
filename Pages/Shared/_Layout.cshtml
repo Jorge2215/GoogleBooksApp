@@ -29,6 +29,9 @@
                         <li class="nav-item">
                             <a class="nav-link site-nav__link" asp-area="" asp-page="/Privacy">Privacy</a>
                         </li>
+                        <li class="nav-item">
+                            <button type="button" class="nav-link site-nav__link border-0 bg-transparent" data-bs-toggle="modal" data-bs-target="#aboutModal">About</button>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -47,6 +50,21 @@
             &copy; 2026 - GoogleBooksApp - <a asp-area="" asp-page="/Privacy">Privacy</a>
         </div>
     </footer>
+
+    <div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content about-modal">
+                <div class="modal-header about-modal__header">
+                    <h2 class="modal-title fs-5" id="aboutModalLabel">About</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body about-modal__body">
+                    <p>Sample Web App developed by the Windup Bird Team</p>
+                    <p class="about-modal__version">Version 1.0.1 - Still under development</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
