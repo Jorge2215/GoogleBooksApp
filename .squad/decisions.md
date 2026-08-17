@@ -27,6 +27,10 @@
 - Default DI lifetimes: singleton for stateless configuration, scoped for request state, typed `HttpClient` for outbound HTTP services.
 - Read configuration through options binding, not ad-hoc `IConfiguration` lookups inside feature code.
 
+## Upcoming Work (Planned — Next Session)
+
+- **2026-08-16 (Jorgito):** Next working session will focus on: (1) publishing the source code to a GitHub repository, (2) publishing/deploying the web app to Azure. Not started yet — flagging for Toru (repo/deploy structure) and team routing when session resumes.
+
 ## Governance
 
 - All meaningful changes require team consensus
@@ -177,3 +181,67 @@ I created/updated README.md in the repo root to cover:
 - Testing: noted that no test project exists yet; include instructions to run `dotnet test` once tests are added.
 
 If you'd like any wording changes, or want additional screenshots or examples, I can update the README.
+
+--- Inbox file: toru-home-page-route.md (orig LastWrite: 08/16/2026 23:06:46) ---
+
+# Decision: Books.cshtml as Root Route
+
+**Date:** 2026-08-16  
+**Author:** Toru (Architect)  
+**Status:** Implemented
+
+## Context
+
+The app's purpose is Google Books search. The default Razor Pages scaffold set `Pages/Index.cshtml` as the root route `/`, but the real entry point should be `Pages/Books.cshtml`.
+
+## Decision
+
+- Changed `@page` to `@page "/"` in `Pages/Books.cshtml` — it now owns the root route.
+- Changed `@page` to `@page "/Index"` in `Pages/Index.cshtml` — still reachable at `/Index` but no longer conflicts with `/`.
+- Updated `Pages/Shared/_Layout.cshtml` nav: the brand link and "Home" nav item both now point to `asp-page="/Books"` (which resolves to `/`).
+
+## Rationale
+
+Setting the route directly via `@page "/"` on `Books.cshtml` is the idiomatic Razor Pages approach — no redirect overhead, no Program.cs plumbing, and it's immediately clear from the page file itself which page owns the root.
+
+
+---
+### Merged inbox: creta-visual-theme.md - 2026-08-16T23:10:37.0596850-03:00
+
+
+# Creta Visual Theme Decision — 2026-08-16
+
+## Palette
+
+- Background: `#eef7ff`
+- Strong background accent: `#d8ebff`
+- Surface: `#ffffff`
+- Muted surface: `#f5faff`
+- Border: `#cfe0f2`
+- Primary blue: `#4a90e2`
+- Primary blue (strong): `#2f6fb2`
+- Text: `#111827`
+- Muted text: `#475569`
+- Error background: `#fff1f2`
+- Error text: `#9f1239`
+
+## Typography
+
+- Font family: `Inter`, falling back to `system-ui`, `-apple-system`, `BlinkMacSystemFont`, `"Segoe UI"`, `sans-serif`
+- Heading style: heavier weight with tighter tracking for clearer hierarchy
+- Body copy: 16px base size with 1.6 line-height for readability
+
+## Files touched
+
+- `Pages\Shared\_Layout.cshtml`
+- `Pages\Books.cshtml`
+- `wwwroot\css\site.css`
+- `.squad\agents\creta\history.md`
+- `.squad\decisions\inbox\creta-visual-theme.md`
+
+## UI state confirmation
+
+- Preserved the functional rendering for search form, results list, pagination, empty state, error state, and missing-cover fallback.
+- Moved the shared Books page theme rules into the global stylesheet so the home route, Privacy page, Index page, and Error page inherit the same palette and typography.
+
+

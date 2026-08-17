@@ -21,7 +21,6 @@ C:\Users\Jorgito\source\repos\GoogleBooksApp\obj\Debug\net10.0\rjsmcshtml.dswa.c
 C:\Users\Jorgito\source\repos\GoogleBooksApp\obj\Debug\net10.0\scopedcss\Pages\Shared\_Layout.cshtml.rz.scp.css
 C:\Users\Jorgito\source\repos\GoogleBooksApp\obj\Debug\net10.0\scopedcss\bundle\GoogleBooksApp.styles.css
 C:\Users\Jorgito\source\repos\GoogleBooksApp\obj\Debug\net10.0\scopedcss\projectbundle\GoogleBooksApp.bundle.scp.css
-C:\Users\Jorgito\source\repos\GoogleBooksApp\obj\Debug\net10.0\compressed\ivasck1gi1-{0}-b9sayid5wm-b9sayid5wm.gz
 C:\Users\Jorgito\source\repos\GoogleBooksApp\obj\Debug\net10.0\compressed\rvjttkxz6h-{0}-61n19gt1b8-61n19gt1b8.gz
 C:\Users\Jorgito\source\repos\GoogleBooksApp\obj\Debug\net10.0\compressed\b4grv56x2r-{0}-xtxxf3hu2r-xtxxf3hu2r.gz
 C:\Users\Jorgito\source\repos\GoogleBooksApp\obj\Debug\net10.0\compressed\rdwno1mcdx-{0}-bqjiyaj88i-bqjiyaj88i.gz
@@ -95,3 +94,5 @@ C:\Users\Jorgito\source\repos\GoogleBooksApp\obj\Debug\net10.0\refint\GoogleBook
 C:\Users\Jorgito\source\repos\GoogleBooksApp\obj\Debug\net10.0\GoogleBooksApp.pdb
 C:\Users\Jorgito\source\repos\GoogleBooksApp\obj\Debug\net10.0\GoogleBooksApp.genruntimeconfig.cache
 C:\Users\Jorgito\source\repos\GoogleBooksApp\obj\Debug\net10.0\ref\GoogleBooksApp.dll
+C:\Users\Jorgito\source\repos\GoogleBooksApp\obj\Debug\net10.0\compressed\ivasck1gi1-{0}-kf4c4oymd3-kf4c4oymd3.gz
+C:\Users\Jorgito\source\repos\GoogleBooksApp\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt
