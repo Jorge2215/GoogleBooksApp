@@ -1,3 +1,25 @@
+### Merged inbox decisions — 2026-08-17T23:57:53Z
+
+#### Scribe (Coordinator)
+## CI/CD Full Pipeline Verified — 2026-08-17
+
+### 1. API key configuration
+- Google Books API key on Azure App Service must be set as an Application Setting named `GoogleBooks__ApiKey` (double underscore delimiter maps to nested config `GoogleBooks:ApiKey` via ASP.NET Core's environment variable configuration provider). This mirrors the local `dotnet user-secrets` approach. Set independently per environment (Dev/Qas/Prd) via `az webapp config appsettings set --name <app> --resource-group <rg> --settings GoogleBooks__ApiKey=<value>`. Never commit this value to source control or GitHub Actions logs.
+
+### 2. Full CI/CD promotion pipeline verified
+- Full CI/CD promotion pipeline (dev -> qas -> main via PR merge) is now verified working end-to-end: each branch's protection + auto-deploy workflow triggers correctly on PR merge (qas, main) or manual dispatch (dev). All three Azure App Services (GoogleBooksDev, GoogleBooksQas, GoogleBooksPrd) are live, on the latest code (About modal, label fix, light-blue theme), and have working API keys.
+
+### 3. Azure App Service hostnames (reference)
+- GoogleBooksDev: googlebooksdev-bsgehph9ehekhxhu.westus3-01.azurewebsites.net
+- GoogleBooksQas: googlebooksqas-e3ezhncjcscmdpaf.westus3-01.azurewebsites.net
+- GoogleBooksPrd: googlebooksprd-c9gsg6chfpeghyb7.westus3-01.azurewebsites.net
+
+
+--
+Author: Scribe
+Date: 2026-08-17T23:57:53Z
+
+
 # Squad Decisions
 
 ## Active Decisions
