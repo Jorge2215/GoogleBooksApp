@@ -1,0 +1,7 @@
+Scribe: merge CI/CD inbox decisions; add orchestration + session logs
+
+Decisions: size 14685 -> 22544 bytes
+Inbox files processed: 2
+Lesson: verify branch-protection writes; incorrect gh account can report false success
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
