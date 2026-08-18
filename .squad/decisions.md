@@ -24,6 +24,21 @@ Date: 2026-08-17T23:57:53Z
 
 ## Active Decisions
 
+### Scribe — Backlog issues recorded — 2026-08-18T00:04:03Z
+
+The following GitHub issues were created by the Coordinator and recorded as the agreed next-session backlog for the GoogleBooksApp project:
+
+- #5 Advanced search filters (language, year range, sort) — https://github.com/Jorge2215/GoogleBooksApp/issues/5
+- #6 Book details page — https://github.com/Jorge2215/GoogleBooksApp/issues/6
+- #7 Loading spinner during API calls — https://github.com/Jorge2215/GoogleBooksApp/issues/7
+- #8 Dark mode toggle — https://github.com/Jorge2215/GoogleBooksApp/issues/8
+- #9 Application Insights integration on Azure — https://github.com/Jorge2215/GoogleBooksApp/issues/9
+- #10 Integration tests against real Google Books API — https://github.com/Jorge2215/GoogleBooksApp/issues/10
+
+These issues represent the agreed backlog for the next session and should be tracked as action items.
+
+
+
 ### Toru — Project Structure Decision (2026-08-16)
 
 **Folder structure**
