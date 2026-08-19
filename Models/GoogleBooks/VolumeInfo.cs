@@ -21,4 +21,13 @@ public sealed class VolumeInfo
 
     [JsonPropertyName("language")]
     public string? Language { get; init; }
+
+    [JsonPropertyName("categories")]
+    public IReadOnlyList<string>? Categories { get; init; }
+
+    [JsonPropertyName("pageCount")]
+    public int? PageCount { get; init; }
+
+    [JsonPropertyName("industryIdentifiers")]
+    public IReadOnlyList<IndustryIdentifier>? IndustryIdentifiers { get; init; }
 }
