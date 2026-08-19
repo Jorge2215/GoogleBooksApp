@@ -9,5 +9,9 @@ public interface IGoogleBooksService
         string? author,
         int startIndex,
         int maxResults,
+        string? language = null,
+        string? sortOrder = null,
+        int? yearFrom = null,
+        int? yearTo = null,
         CancellationToken cancellationToken = default);
 }

@@ -15,4 +15,10 @@ public sealed class VolumeInfo
 
     [JsonPropertyName("imageLinks")]
     public ImageLinks? ImageLinks { get; init; }
+
+    [JsonPropertyName("publishedDate")]
+    public string? PublishedDate { get; init; }
+
+    [JsonPropertyName("language")]
+    public string? Language { get; init; }
 }
