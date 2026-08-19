@@ -139,9 +139,10 @@
                             <h2>@title</h2>
                             <p class="result-card__authors">@authorsText</p>
                             <p class="result-card__description">@descriptionText</p>
-                            <p class="result-card__link">
-                                <a href="@previewUrl" target="_blank" rel="noopener noreferrer">View on Google Books</a>
-                            </p>
+                            <div class="result-card__actions">
+                                <a asp-page="/BookDetails" asp-route-id="@item.Id" class="result-card__link">View Details</a>
+                                <a href="@previewUrl" target="_blank" rel="noopener noreferrer" class="result-card__link">View on Google Books</a>
+                            </div>
                         </div>
                     </article>
                 </li>

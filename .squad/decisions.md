@@ -1,3 +1,34 @@
+### Merged inbox decisions (reconstructed) — 2026-08-18T22:03:42-03:00
+
+#### Scribe (Coordinator) — corrective entry
+
+> Note: On 2026-08-18, Scribe (agent scribe-2) deleted the decision inbox files for issue #6 (cinnamon-book-details-backend.md, malta-book-details-tests.md, creta-book-details-ui.md) WITHOUT actually merging their content into decisions.md (file size was unchanged, commit c423d393 only touched log files). Since `.squad/decisions/inbox/` is gitignored, the original files are unrecoverable from git history. The Coordinator reconstructed the following entries from the agents' final task summaries captured in the session conversation. **Lesson learned: Scribe must verify decisions.md byte-size actually increased (or diff shows real content added) before deleting any inbox file — an empty/no-op merge followed by inbox deletion is silent data loss.**
+
+## Issue #6 — Book Details Page (reconstructed)
+
+### Cinnamon (Backend)
+- Added `Models/GoogleBooks/IndustryIdentifier.cs` (Type, Identifier — e.g. "ISBN_13").
+- Extended `VolumeInfo` with `Categories` (IReadOnlyList<string>?), `PageCount` (int?), `IndustryIdentifiers` (IReadOnlyList<IndustryIdentifier>?).
+- Added `IGoogleBooksService.GetByIdAsync(string volumeId, CancellationToken)` → `Task<BookResult?>`, calling Google Books API's `volumes/{volumeId}?key={apiKey}` single-volume endpoint. Returns null (never throws) for: empty/whitespace id, missing API key, non-success HTTP status, JSON deserialize failure, HttpRequestException, or timeout — mirrors existing SearchAsync error-handling style.
+- New page `Pages/BookDetails.cshtml.cs` with route `@page "/Books/Details/{Id}"`, properties `Id` (route-bound string?), `Book` (BookResult?), `IsNotFound` (bool).
+
+### Malta (Tester)
+- Added `GoogleBooksApp.Tests/GoogleBooksServiceDetailsTests.cs` — 22 new tests covering: successful deserialization (incl. Categories/PageCount/IndustryIdentifiers with ISBN_10/ISBN_13/OTHER types), null/empty/whitespace id short-circuits without HTTP call, 404/403/500 responses return null, malformed JSON returns null, missing API key returns null, network failure/timeout returns null. Suite total: 52/52 passing.
+
+### Creta (Frontend)
+- Built full `Pages/BookDetails.cshtml`: two-column responsive layout (cover left, content right; stacks <920px), larger cover (max 420px) with fallback placeholder, full untruncated description, categories as pill-shaped tag chips, page count (graceful omission if null), ISBN display preferring ISBN-13 over ISBN-10 (omitted if neither present), "View on Google Books" external link, "← Back to search" link, friendly non-technical "Book Not Found" state.
+- Wired "View details" links from `Pages/Books.cshtml` search-results grid via `asp-page="/BookDetails" asp-route-id="@item.Id"` (page-name routing, independent of the `@page` URL-template override — confirmed working live).
+- Added matching CSS to `wwwroot/css/site.css` reusing existing design-system custom properties (no new colors introduced).
+
+### Coordinator verification
+- Build: 0 errors (1 pre-existing minor nullable-reference warning in a test file, non-blocking).
+- `dotnet test`: 52/52 passed.
+- Commit `d48ace9` on `origin/dev` contains only the intended files (verified via `git show --stat`).
+- Live end-to-end smoke test on Dev (deployment run 32204583221): searched "Dune" on the live site, extracted a real `/Books/Details/{id}` link from the rendered HTML, followed it, confirmed HTTP 200 with ISBN, page count, and back-link all present.
+- Status at time of this entry: feature live and verified on **Dev only** — not yet promoted to QAS/Prd.
+
+---
+
 ### Merged inbox decisions — 2026-08-17T23:57:53Z
 
 #### Scribe (Coordinator)
@@ -497,3 +528,341 @@ Alternative:
 
 
 
+
+---
+## Merged inbox: cinnamon-advanced-filters-backend.md
+# Advanced Search Filters Backend Implementation — 2026-08-18
+
+## Summary
+Implemented backend support for advanced search filters (language, year range, sort order) in response to GitHub issue #5. The implementation extends the existing Google Books API integration with both server-side and client-side filtering capabilities.
+
+## New Model Properties (VolumeInfo.cs)
+Added two new properties to `Models/GoogleBooks/VolumeInfo.cs` to capture additional book metadata from the Google Books API:
+
+- `PublishedDate` (string?, JsonPropertyName "publishedDate") — Partial-precision date string from Google Books API, formatted as "YYYY", "YYYY-MM", or "YYYY-MM-DD"
+- `Language` (string?, JsonPropertyName "language") — ISO 639-1 language code (e.g., "en", "es", "fr")
+
+## Service Contract Extension (IGoogleBooksService.cs, GoogleBooksService.cs)
+Extended `SearchAsync` method signature with four new optional parameters:
+
+```csharp
+Task<GoogleBooksSearchResult> SearchAsync(
+    string? title,
+    string? author,
+    int startIndex,
+    int maxResults,
+    string? language = null,          // ISO 639-1 code (e.g., "en")
+    string? sortOrder = null,          // "relevance" (default) or "newest"
+    int? yearFrom = null,              // Year range start (inclusive)
+    int? yearTo = null,                // Year range end (inclusive)
+    CancellationToken cancellationToken = default);
+```
+
+### Google Books API Parameter Mapping
+
+1. **Language Filter (`language` → `langRestrict`)**
+   - Sent to Google Books API as `langRestrict` query parameter
+   - Expects 2-letter ISO 639-1 code, normalized to lowercase
+   - Server-side filtering by the API
+   - **Also applied client-side** for consistency and to handle edge cases where API returns non-matching items
+
+2. **Sort Order (`sortOrder` → `orderBy`)**
+   - "relevance" (default): omit `orderBy` parameter (API default behavior)
+   - "newest": send `orderBy=newest` to the API
+   - Server-side sorting by the API
+
+3. **Year Range (`yearFrom`, `yearTo` → client-side filter)**
+   - **Critical limitation**: Google Books API does NOT support server-side year-range filtering
+   - Implemented as **client-side post-fetch filter** after deserializing API results
+   - Parses leading 4-digit year from `VolumeInfo.PublishedDate` string
+   - Handles formats: "2020", "2020-05", "2020-05-12"
+   - **Books with null/unparseable PublishedDate are excluded** when year filter is active
+   - **TotalItems behavior**: When any filter (language or year) is active, `TotalItems` is updated to reflect the filtered count (not the API's original total). This provides accurate counts per page but means pagination totals may vary across pages since filtering happens after the API applies `startIndex`/`maxResults`.
+
+### Filter Normalization and Validation
+- **Language**: Trimmed, lowercased, validated as 2-letter code; invalid values become null
+- **SortOrder**: "newest" or "relevance" (default); other values normalize to "relevance"
+- **YearFrom/YearTo**: Clamped to 1450-2100 range; swapped if YearFrom > YearTo
+
+## PageModel Updates (Pages/Books.cshtml.cs)
+Added four new bound properties with `[BindProperty(SupportsGet = true)]`:
+
+- `string? Language` — Display Name "Language"
+- `int? YearFrom` — Display Name "From year"
+- `int? YearTo` — Display Name "To year"
+- `string SortOrder` — Display Name "Sort by", default "relevance"
+
+These properties are:
+- Normalized via `NormalizeInput()` (validation, trimming, clamping)
+- Passed to `_googleBooksService.SearchAsync(...)`
+- Included in POST redirect query string to preserve filter state across pagination
+
+**Search Criteria Policy**: Filters are refinements, not replacements. `HasSearchCriteria()` still requires at least title or author to be provided; filters alone do not constitute a valid search.
+
+## Key Design Decisions
+
+1. **Hybrid Filtering Approach**
+   - Language and sort order: sent to Google Books API (server-side)
+   - Language: also filtered client-side for consistency
+   - Year range: client-side only (API limitation)
+
+2. **TotalItems Accuracy Trade-off**
+   - When filters are active, `TotalItems` reflects the filtered count for the current page
+   - This provides accurate "X results on this page" messaging
+   - BUT pagination total across all pages is approximate since each page is filtered independently
+   - This is an acceptable trade-off given the API's lack of server-side year filtering
+
+3. **Date Parsing Robustness**
+   - Safely extracts leading 4-digit year from variable-precision date strings
+   - Falls back gracefully for null/invalid dates (excludes from filtered results)
+
+4. **Consistency with Existing Codebase**
+   - Sealed classes, primary constructors, expression-bodied members
+   - Nullable reference types
+   - Consistent naming conventions (PascalCase public, camelCase private)
+
+## Testing
+- All 30 tests pass (10 original + 20 new filter tests by Malta)
+- Build: 0 warnings, 0 errors
+- Filter tests validate: language filtering, year filtering, sort order URL mapping, combined filters, edge cases (null dates, invalid inputs)
+
+## Frontend Integration
+**Backend contract is complete and tested.** The new properties and parameters are ready for UI wiring by Creta in a follow-up task. No Razor markup or CSS changes were made (per task scope).
+
+## Exact Property Signatures (for Creta)
+### PageModel Properties (Books.cshtml.cs)
+```csharp
+[Display(Name = "Language")]
+[BindProperty(SupportsGet = true)]
+public string? Language { get; set; }
+
+[Display(Name = "From year")]
+[BindProperty(SupportsGet = true)]
+public int? YearFrom { get; set; }
+
+[Display(Name = "To year")]
+[BindProperty(SupportsGet = true)]
+public int? YearTo { get; set; }
+
+[Display(Name = "Sort by")]
+[BindProperty(SupportsGet = true)]
+public string SortOrder { get; set; } = "relevance";
+```
+
+### Valid SortOrder Values
+- "relevance" (default)
+- "newest"
+
+### Language Format
+- 2-letter ISO 639-1 code (e.g., "en", "es", "fr", "pt", "de")
+- Normalized to lowercase
+- Invalid/non-2-letter codes are treated as null (no language filter)
+
+### Year Range Constraints
+- Valid range: 1450-2100
+- If both are provided, YearFrom ≤ YearTo (auto-swapped if needed)
+- Null values mean unbounded on that side
+
+---
+**Author**: Cinnamon (Backend Developer)  
+**Date**: 2026-08-18  
+**Related Issue**: #5 Advanced search filters (language, year range, sort)
+
+
+---
+## Merged inbox: creta-advanced-filters-ui.md
+# Advanced Search Filters UI Implementation — 2026-08-18
+
+## Summary
+Implemented the frontend UI for advanced search filters (language, year range, sort order) in response to GitHub issue #5. The implementation provides a clean, accessible interface for filtering book search results while maintaining consistency with the existing light-blue/white design theme.
+
+## UI Components Added (Pages/Books.cshtml)
+
+### 1. Collapsible Advanced Filters Section
+- Used native HTML `<details>` and `<summary>` elements for zero-JavaScript progressive disclosure
+- Keeps the primary search experience (title/author) clean and uncluttered for casual users
+- Advanced filters revealed on demand with a single click
+- Custom arrow indicator (▸ → ▾) styled to match the app's visual language
+
+### 2. Filter Controls
+Added four new form controls inside the collapsible section, each using `asp-for` binding to the backend properties:
+
+#### Language Dropdown (`<select asp-for="Language">`)
+- Default option: "Any language" (empty value)
+- Included common languages: English, Spanish, French, German, Italian, Portuguese, Japanese, Chinese, Russian
+- Values are 2-letter ISO 639-1 codes (e.g., "en", "es", "fr") matching backend contract
+- Styled with `.advanced-filters__select` class for consistency
+
+#### Year Range Inputs
+- `<input asp-for="YearFrom" type="number">` — placeholder "e.g. 2015"
+- `<input asp-for="YearTo" type="number">` — placeholder "e.g. 2023"
+- Both constrained with `min="1450"` and `max="2100"` attributes (matching backend validation)
+- Reuse existing `.search-form__field input` styles for visual consistency
+
+#### Sort Order Dropdown (`<select asp-for="SortOrder">`)
+- Options: "Relevance" (value "relevance", default) and "Newest first" (value "newest")
+- Values match backend contract exactly
+- Styled with `.advanced-filters__select` class
+
+### 3. Pagination Persistence
+Extended both Previous and Next pagination links to include all filter parameters as route values:
+- `asp-route-language`
+- `asp-route-yearFrom`
+- `asp-route-yearTo`
+- `asp-route-sortOrder`
+
+This ensures filter state is preserved across pagination, consistent with existing `titleQuery` and `authorQuery` behavior.
+
+### 4. Approximate Results Disclaimer
+When year filters are active (`YearFrom` or `YearTo` has a value):
+- Added an asterisk (*) next to the results count with a tooltip explaining the limitation
+- Added a subtle disclaimer below the summary: "* Results may be approximate when filtering by year"
+- Styled with `.results-summary__disclaimer` (italic, muted text, non-intrusive)
+- Rationale: Google Books API doesn't support server-side year filtering, so filtering happens client-side after fetching results, meaning the total count may vary between pages
+
+## CSS Additions (wwwroot/css/site.css)
+
+### Advanced Filters Styling
+- `.advanced-filters` — Top border, padding for visual separation from main search fields
+- `.advanced-filters__toggle` — Interactive summary element with hover state, custom arrow icon using `::before` pseudo-element
+- `.advanced-filters__toggle::before` — Arrow indicator with rotation transition when opened
+- `.advanced-filters__content` — Responsive grid matching existing `.search-form__fields` pattern (auto-fit, minmax(220px, 1fr))
+- `.advanced-filters__select` — Dropdown styling matching text input fields (border, radius, focus states, transform on focus)
+- `.results-summary__note` — Small, muted text with cursor:help for the asterisk tooltip
+- `.results-summary__disclaimer` — Italic, muted disclaimer text
+
+### Design System Consistency
+- Reused existing CSS custom properties: `--color-primary`, `--color-primary-strong`, `--color-border`, `--color-border-strong`, `--color-surface`, `--color-text`, `--color-text-muted`, `--color-surface-muted`
+- Matched existing transition patterns (0.2s ease)
+- Maintained Inter font family and existing spacing/sizing patterns
+- No new colors or fonts introduced
+
+## UX Decisions
+
+### 1. Progressive Disclosure Pattern
+- **Rationale**: Advanced filters are valuable for power users but would clutter the interface for casual searchers who only need title/author
+- **Implementation**: HTML `<details>` element provides native, accessible, zero-JS collapsibility
+- **Trade-off**: No ability to have filters open by default based on URL state, but simplicity and accessibility outweigh this limitation
+
+### 2. Language Selection
+- **Included languages**: Top 9 most widely spoken languages by book publishing volume
+- **Not exhaustive**: Could extend to more languages later if needed, but avoided overwhelming the dropdown
+- **Blank option**: "Any language" allows clearing the filter without resetting the entire form
+
+### 3. Year Range Placeholder Text
+- Used "e.g. 2015" and "e.g. 2023" to subtly guide users toward recent publication years
+- Did not use `value` attributes to avoid pre-filling filters (filters should be opt-in)
+
+### 4. Approximate Results Messaging
+- **Placement**: Directly next to the results count where users are already looking
+- **Tone**: Matter-of-fact, not apologetic ("may be approximate" vs. "might not be accurate")
+- **Tooltip**: Added `title` attribute to asterisk for immediate context on hover
+- **Visibility**: Only shown when year filters are active (conditional rendering)
+
+## Accessibility
+- All form controls have proper `<label asp-for="...">` elements using Display Name attributes from the backend
+- Collapsible section uses semantic HTML (`<details>`/`<summary>`) with implicit keyboard support (Space/Enter to toggle)
+- Results summary has `aria-live="polite"` for screen reader announcements when results update
+- Pagination nav has `aria-label="Search results pages"`
+- Disabled pagination links use `aria-disabled="true"`
+
+## Testing
+- **Build**: 0 warnings, 0 errors
+- **Tests**: All 30 tests pass (10 original service tests + 20 filter tests by Malta)
+- **Manual verification**: Reviewed rendered markup to confirm `asp-for` bindings match exact backend property names (`Language`, `YearFrom`, `YearTo`, `SortOrder`)
+
+## Integration Notes
+- **Backend contract**: Implemented by Cinnamon in Pages/Books.cshtml.cs
+- **Form binding**: Uses existing `[BindProperty(SupportsGet = true)]` pattern — filters populate automatically from query string
+- **POST redirect**: Cinnamon's OnPostAsync already includes new filter properties in redirect query string
+- **Search criteria policy**: Filters alone do not constitute a valid search; title or author is still required (per HasSearchCriteria() logic)
+
+## Future Enhancements (Not in Scope)
+- Persist filter state in browser localStorage
+- "Clear all filters" button
+- Filter chips showing active filters above results
+- Auto-expand advanced filters if any filter has a value in the query string
+- More languages in dropdown (e.g., Korean, Arabic, Hindi)
+
+---
+**Author**: Creta (Frontend Developer)  
+**Date**: 2026-08-18  
+**Related Issue**: #5 Advanced search filters (language, year range, sort)  
+**Related Decision**: cinnamon-advanced-filters-backend.md (backend implementation)
+
+
+---
+## Merged inbox: malta-advanced-filters-tests.md
+# Malta — Advanced Filters Test Strategy
+
+**Author:** Malta  
+**Date:** 2026-08-18T21:30:00-03:00  
+**Issue:** #5 Advanced search filters (language, year range, sort)
+
+## Test Coverage Decisions
+
+### 1. Anticipatory Testing Approach
+- Tests written against the **expected contract** defined in the task specification, as Cinnamon is implementing the feature in parallel.
+- Tests may require adjustments once Cinnamon's actual implementation lands, but the core test logic should remain valid.
+- Created `GoogleBooksServiceFilterTests.cs` as a separate test file to keep filter-specific tests isolated from the base search tests.
+
+### 2. Language Filter Tests
+- **Normalization:** Language codes are normalized to lowercase (EN→en, Fr→fr) to match Google Books API conventions.
+- **Validation:** Tests verify the `langRestrict` query parameter is correctly appended when `language` is provided and omitted when null.
+
+### 3. Sort Order Tests
+- **"newest" mapping:** When `sortOrder` is "newest", the `orderBy=newest` parameter is appended.
+- **"relevance" default:** When `sortOrder` is "relevance" or null, the `orderBy` parameter is **omitted** (Google Books API default).
+
+### 4. Year Range Filtering (Client-Side)
+- **Implementation location:** Year filtering is performed **client-side** after deserialization, not in the API request.
+- **Date parsing:** The leading 4-digit year is extracted from `PublishedDate`, which may be in formats: "2020", "2020-05", or "2020-05-12".
+- **Null/malformed handling:** Items with null or unparseable `PublishedDate` are **excluded** when any year filter (yearFrom or yearTo) is active.
+- **Edge case: yearFrom > yearTo:** ASSUMPTION — Returns **empty results** rather than swapping values. This is the simplest behavior and alerts users to input errors. If Cinnamon implements swapping, tests will need adjustment.
+- **TotalItems accuracy:** After client-side filtering, `TotalItems` should reflect the **filtered count**, not the original API response count.
+
+### 5. Combined Filters
+- Tests verify that language, sort order, and year filters can be applied together with title/author searches.
+- All filters should compose correctly without interfering with each other.
+
+### 6. Test Pattern Consistency
+- Followed existing test patterns from `GoogleBooksServiceTests.cs`:
+  - xUnit framework
+  - `StubHttpMessageHandler` for HTTP mocking
+  - Fact/Theory attributes for test methods
+  - Inline test data for parameterized tests
+  - Descriptive test names following the `MethodName_Scenario_ExpectedBehavior` convention
+
+## Test File Structure
+
+**GoogleBooksServiceFilterTests.cs** (343 lines):
+- Language Filter Tests (3 tests)
+- Sort Order Tests (3 tests)
+- Year Range Filter Tests (client-side, 9 tests)
+- Combined Filters Tests (2 tests)
+- TotalItems Accuracy Tests (1 test)
+
+Total: **18 test cases** covering the advanced filter functionality.
+
+## Known Limitations
+- Tests are written **anticipatorily** — they expect method signatures that don't exist yet.
+- Compilation will fail until Cinnamon adds the new optional parameters to `IGoogleBooksService.SearchAsync` and the new properties to `VolumeInfo`.
+- Once Cinnamon's implementation lands, may need minor adjustments if actual behavior differs from the expected contract.
+
+## Next Steps
+- Run `dotnet test GoogleBooksApp.slnx` once Cinnamon's changes are available.
+- Adjust tests if Cinnamon's actual implementation differs from the expected contract.
+- Add PageModel-level tests if needed after reviewing Cinnamon's BooksModel changes.
+
+### Merged inbox decisions — 2026-08-19T01:01:34Z
+
+#### Scribe (Scribe)
+## Issue #5 promoted to QAS and Production — 2026-08-19T01:01:34Z
+
+- PR #13 (dev -> qas) merged; deploy-qas.yml run 32203176912 succeeded; QAS smoke-tested (HTTP 200; filter controls present).
+- PR #14 (qas -> main) merged; deploy-prd.yml run 32203253955 succeeded; Production smoke-tested (HTTP 200; filter controls present).
+- Issue #5 closed manually after merge; auto-close did not trigger.
+
+--
+Author: Scribe
+Date: 2026-08-19T01:01:34Z
