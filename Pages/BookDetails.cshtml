@@ -1,0 +1,106 @@
+@page "/Books/Details/{Id}"
+@using GoogleBooksApp.Models.GoogleBooks
+@model GoogleBooksApp.Pages.BookDetailsModel
+@{
+    ViewData["Title"] = Model.Book?.VolumeInfo?.Title ?? "Book Details";
+}
+
+<section class="book-details-page">
+    @if (Model.IsNotFound)
+    {
+        <div class="status-message status-message--error" role="status">
+            <h2>Book Not Found</h2>
+            <p>We couldn't find this book. It may have been removed or the link is invalid.</p>
+        </div>
+        <div class="book-details__actions">
+            <a asp-page="/Books" class="btn-back">← Back to search</a>
+        </div>
+    }
+    else if (Model.Book is not null)
+    {
+        var info = Model.Book.VolumeInfo;
+        var title = string.IsNullOrWhiteSpace(info?.Title) ? "Untitled book" : info.Title;
+        var authors = info?.Authors ?? Array.Empty<string>();
+        var authorsText = authors.Count > 0 ? string.Join(", ", authors) : "Unknown author";
+        var description = string.IsNullOrWhiteSpace(info?.Description) ? "No description available." : info.Description;
+        var thumbnailUrl = info?.ImageLinks?.Thumbnail ?? info?.ImageLinks?.SmallThumbnail;
+        var coverClass = string.IsNullOrWhiteSpace(thumbnailUrl) ? "book-details__cover is-fallback" : "book-details__cover";
+        var previewUrl = $"https://books.google.com/books?id={Uri.EscapeDataString(Model.Book.Id)}";
+        var categories = info?.Categories ?? Array.Empty<string>();
+        var pageCount = info?.PageCount;
+        var industryIdentifiers = info?.IndustryIdentifiers ?? Array.Empty<IndustryIdentifier>();
+        
+        var isbn13 = industryIdentifiers.FirstOrDefault(id => id.Type == "ISBN_13");
+        var isbn10 = industryIdentifiers.FirstOrDefault(id => id.Type == "ISBN_10");
+        var displayIsbn = isbn13 ?? isbn10;
+
+        <div class="book-details__actions">
+            <a asp-page="/Books" class="btn-back">← Back to search</a>
+        </div>
+
+        <article class="book-details__card">
+            <div class="book-details__layout">
+                <div class="@coverClass">
+                    @if (!string.IsNullOrWhiteSpace(thumbnailUrl))
+                    {
+                        <img src="@thumbnailUrl"
+                             alt="Cover for @title"
+                             loading="eager"
+                             referrerpolicy="no-referrer"
+                             onerror="this.closest('.book-details__cover').classList.add('is-fallback'); this.remove();" />
+                    }
+                    <span class="book-details__cover-placeholder">No cover available</span>
+                </div>
+
+                <div class="book-details__content">
+                    <header>
+                        <h1>@title</h1>
+                        <p class="book-details__authors">@authorsText</p>
+                    </header>
+
+                    <div class="book-details__meta">
+                        @if (categories.Count > 0)
+                        {
+                            <div class="book-details__meta-item">
+                                <strong>Categories:</strong>
+                                <div class="book-details__tags">
+                                    @foreach (var category in categories)
+                                    {
+                                        <span class="book-details__tag">@category</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        @if (pageCount.HasValue)
+                        {
+                            <div class="book-details__meta-item">
+                                <strong>Pages:</strong>
+                                <span>@pageCount pages</span>
+                            </div>
+                        }
+
+                        @if (displayIsbn is not null && !string.IsNullOrWhiteSpace(displayIsbn.Identifier))
+                        {
+                            <div class="book-details__meta-item">
+                                <strong>@(displayIsbn.Type == "ISBN_13" ? "ISBN-13" : "ISBN-10"):</strong>
+                                <span>@displayIsbn.Identifier</span>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="book-details__description">
+                        <h2>Description</h2>
+                        <p>@description</p>
+                    </div>
+
+                    <div class="book-details__external">
+                        <a href="@previewUrl" target="_blank" rel="noopener noreferrer" class="btn-preview">
+                            View on Google Books
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </article>
+    }
+</section>

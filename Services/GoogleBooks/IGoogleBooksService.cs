@@ -14,4 +14,6 @@ public interface IGoogleBooksService
         int? yearFrom = null,
         int? yearTo = null,
         CancellationToken cancellationToken = default);
+
+    Task<BookResult?> GetByIdAsync(string volumeId, CancellationToken cancellationToken = default);
 }
