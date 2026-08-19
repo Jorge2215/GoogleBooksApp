@@ -20,6 +20,22 @@ public sealed class BooksModel(IGoogleBooksService googleBooksService) : PageMod
     [BindProperty(SupportsGet = true)]
     public string? AuthorQuery { get; set; }
 
+    [Display(Name = "Language")]
+    [BindProperty(SupportsGet = true)]
+    public string? Language { get; set; }
+
+    [Display(Name = "From year")]
+    [BindProperty(SupportsGet = true)]
+    public int? YearFrom { get; set; }
+
+    [Display(Name = "To year")]
+    [BindProperty(SupportsGet = true)]
+    public int? YearTo { get; set; }
+
+    [Display(Name = "Sort by")]
+    [BindProperty(SupportsGet = true)]
+    public string SortOrder { get; set; } = "relevance";
+
     [BindProperty(SupportsGet = true)]
     public int PageIndex { get; set; }
 
@@ -51,6 +67,10 @@ public sealed class BooksModel(IGoogleBooksService googleBooksService) : PageMod
         {
             TitleQuery,
             AuthorQuery,
+            Language,
+            YearFrom,
+            YearTo,
+            SortOrder,
             PageIndex
         });
     }
@@ -73,6 +93,10 @@ public sealed class BooksModel(IGoogleBooksService googleBooksService) : PageMod
             AuthorQuery,
             PageIndex * PageSize,
             PageSize,
+            Language,
+            SortOrder,
+            YearFrom,
+            YearTo,
             cancellationToken);
 
         Results = searchResult.Items;
@@ -87,8 +111,57 @@ public sealed class BooksModel(IGoogleBooksService googleBooksService) : PageMod
     {
         TitleQuery = NormalizeQuery(TitleQuery);
         AuthorQuery = NormalizeQuery(AuthorQuery);
+        Language = NormalizeLanguageCode(Language);
+        SortOrder = NormalizeSortOrder(SortOrder);
+        NormalizeYearRange();
     }
 
     private static string? NormalizeQuery(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private static string? NormalizeLanguageCode(string? language)
+    {
+        if (string.IsNullOrWhiteSpace(language))
+        {
+            return null;
+        }
+
+        var trimmed = language.Trim().ToLowerInvariant();
+        // Accept 2-letter ISO 639-1 codes only
+        return trimmed.Length == 2 ? trimmed : null;
+    }
+
+    private static string NormalizeSortOrder(string? sortOrder)
+    {
+        if (string.IsNullOrWhiteSpace(sortOrder))
+        {
+            return "relevance";
+        }
+
+        var trimmed = sortOrder.Trim().ToLowerInvariant();
+        return trimmed == "newest" ? "newest" : "relevance";
+    }
+
+    private void NormalizeYearRange()
+    {
+        const int MinYear = 1450;
+        const int MaxYear = 2100;
+
+        // Clamp to sane bounds
+        if (YearFrom.HasValue)
+        {
+            YearFrom = Math.Clamp(YearFrom.Value, MinYear, MaxYear);
+        }
+
+        if (YearTo.HasValue)
+        {
+            YearTo = Math.Clamp(YearTo.Value, MinYear, MaxYear);
+        }
+
+        // Ensure YearFrom <= YearTo; swap if needed
+        if (YearFrom.HasValue && YearTo.HasValue && YearFrom > YearTo)
+        {
+            (YearFrom, YearTo) = (YearTo, YearFrom);
+        }
+    }
 }

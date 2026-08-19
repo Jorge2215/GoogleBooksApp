@@ -35,6 +35,43 @@
                 <input asp-for="AuthorQuery" autocomplete="off" placeholder="Optional author name" />
             </div>
         </div>
+
+        <details class="advanced-filters">
+            <summary class="advanced-filters__toggle">Advanced filters</summary>
+            <div class="advanced-filters__content">
+                <div class="search-form__field">
+                    <label asp-for="Language"></label>
+                    <select asp-for="Language" class="advanced-filters__select">
+                        <option value="">Any language</option>
+                        <option value="en">English</option>
+                        <option value="es">Spanish</option>
+                        <option value="fr">French</option>
+                        <option value="de">German</option>
+                        <option value="it">Italian</option>
+                        <option value="pt">Portuguese</option>
+                        <option value="ja">Japanese</option>
+                        <option value="zh">Chinese</option>
+                        <option value="ru">Russian</option>
+                    </select>
+                </div>
+                <div class="search-form__field">
+                    <label asp-for="YearFrom"></label>
+                    <input asp-for="YearFrom" type="number" min="1450" max="2100" placeholder="e.g. 2015" />
+                </div>
+                <div class="search-form__field">
+                    <label asp-for="YearTo"></label>
+                    <input asp-for="YearTo" type="number" min="1450" max="2100" placeholder="e.g. 2023" />
+                </div>
+                <div class="search-form__field">
+                    <label asp-for="SortOrder"></label>
+                    <select asp-for="SortOrder" class="advanced-filters__select">
+                        <option value="relevance">Relevance</option>
+                        <option value="newest">Newest first</option>
+                    </select>
+                </div>
+            </div>
+        </details>
+
         <div class="search-form__actions">
             <button type="submit">Search</button>
         </div>
@@ -62,7 +99,15 @@
                 {
                     <span>&middot; @totalItems result@(totalItems == 1 ? string.Empty : "s") found</span>
                 }
+                @if (Model.YearFrom.HasValue || Model.YearTo.HasValue)
+                {
+                    <span class="results-summary__note" title="Year filtering is applied after fetching results from Google Books, so the total count may vary between pages">*</span>
+                }
             </p>
+            @if (Model.YearFrom.HasValue || Model.YearTo.HasValue)
+            {
+                <p class="results-summary__disclaimer">* Results may be approximate when filtering by year</p>
+            }
         </div>
 
         <ul class="results-grid">
@@ -115,6 +160,10 @@
                        asp-route-pageIndex="@(pageIndex - 1)"
                        asp-route-titleQuery="@Model.TitleQuery"
                        asp-route-authorQuery="@Model.AuthorQuery"
+                       asp-route-language="@Model.Language"
+                       asp-route-yearFrom="@Model.YearFrom"
+                       asp-route-yearTo="@Model.YearTo"
+                       asp-route-sortOrder="@Model.SortOrder"
                        class="pagination__link">Previous</a>
                 }
                 else
@@ -128,6 +177,10 @@
                        asp-route-pageIndex="@(pageIndex + 1)"
                        asp-route-titleQuery="@Model.TitleQuery"
                        asp-route-authorQuery="@Model.AuthorQuery"
+                       asp-route-language="@Model.Language"
+                       asp-route-yearFrom="@Model.YearFrom"
+                       asp-route-yearTo="@Model.YearTo"
+                       asp-route-sortOrder="@Model.SortOrder"
                        class="pagination__link">Next</a>
                 }
                 else
