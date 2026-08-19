@@ -823,3 +823,15 @@ Total: **18 test cases** covering the advanced filter functionality.
 - Adjust tests if Cinnamon's actual implementation differs from the expected contract.
 - Add PageModel-level tests if needed after reviewing Cinnamon's BooksModel changes.
 
+### Merged inbox decisions — 2026-08-19T01:01:34Z
+
+#### Scribe (Scribe)
+## Issue #5 promoted to QAS and Production — 2026-08-19T01:01:34Z
+
+- PR #13 (dev -> qas) merged; deploy-qas.yml run 32203176912 succeeded; QAS smoke-tested (HTTP 200; filter controls present).
+- PR #14 (qas -> main) merged; deploy-prd.yml run 32203253955 succeeded; Production smoke-tested (HTTP 200; filter controls present).
+- Issue #5 closed manually after merge; auto-close did not trigger.
+
+--
+Author: Scribe
+Date: 2026-08-19T01:01:34Z
