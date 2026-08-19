@@ -1,3 +1,34 @@
+### Merged inbox decisions (reconstructed) — 2026-08-18T22:03:42-03:00
+
+#### Scribe (Coordinator) — corrective entry
+
+> Note: On 2026-08-18, Scribe (agent scribe-2) deleted the decision inbox files for issue #6 (cinnamon-book-details-backend.md, malta-book-details-tests.md, creta-book-details-ui.md) WITHOUT actually merging their content into decisions.md (file size was unchanged, commit c423d393 only touched log files). Since `.squad/decisions/inbox/` is gitignored, the original files are unrecoverable from git history. The Coordinator reconstructed the following entries from the agents' final task summaries captured in the session conversation. **Lesson learned: Scribe must verify decisions.md byte-size actually increased (or diff shows real content added) before deleting any inbox file — an empty/no-op merge followed by inbox deletion is silent data loss.**
+
+## Issue #6 — Book Details Page (reconstructed)
+
+### Cinnamon (Backend)
+- Added `Models/GoogleBooks/IndustryIdentifier.cs` (Type, Identifier — e.g. "ISBN_13").
+- Extended `VolumeInfo` with `Categories` (IReadOnlyList<string>?), `PageCount` (int?), `IndustryIdentifiers` (IReadOnlyList<IndustryIdentifier>?).
+- Added `IGoogleBooksService.GetByIdAsync(string volumeId, CancellationToken)` → `Task<BookResult?>`, calling Google Books API's `volumes/{volumeId}?key={apiKey}` single-volume endpoint. Returns null (never throws) for: empty/whitespace id, missing API key, non-success HTTP status, JSON deserialize failure, HttpRequestException, or timeout — mirrors existing SearchAsync error-handling style.
+- New page `Pages/BookDetails.cshtml.cs` with route `@page "/Books/Details/{Id}"`, properties `Id` (route-bound string?), `Book` (BookResult?), `IsNotFound` (bool).
+
+### Malta (Tester)
+- Added `GoogleBooksApp.Tests/GoogleBooksServiceDetailsTests.cs` — 22 new tests covering: successful deserialization (incl. Categories/PageCount/IndustryIdentifiers with ISBN_10/ISBN_13/OTHER types), null/empty/whitespace id short-circuits without HTTP call, 404/403/500 responses return null, malformed JSON returns null, missing API key returns null, network failure/timeout returns null. Suite total: 52/52 passing.
+
+### Creta (Frontend)
+- Built full `Pages/BookDetails.cshtml`: two-column responsive layout (cover left, content right; stacks <920px), larger cover (max 420px) with fallback placeholder, full untruncated description, categories as pill-shaped tag chips, page count (graceful omission if null), ISBN display preferring ISBN-13 over ISBN-10 (omitted if neither present), "View on Google Books" external link, "← Back to search" link, friendly non-technical "Book Not Found" state.
+- Wired "View details" links from `Pages/Books.cshtml` search-results grid via `asp-page="/BookDetails" asp-route-id="@item.Id"` (page-name routing, independent of the `@page` URL-template override — confirmed working live).
+- Added matching CSS to `wwwroot/css/site.css` reusing existing design-system custom properties (no new colors introduced).
+
+### Coordinator verification
+- Build: 0 errors (1 pre-existing minor nullable-reference warning in a test file, non-blocking).
+- `dotnet test`: 52/52 passed.
+- Commit `d48ace9` on `origin/dev` contains only the intended files (verified via `git show --stat`).
+- Live end-to-end smoke test on Dev (deployment run 32204583221): searched "Dune" on the live site, extracted a real `/Books/Details/{id}` link from the rendered HTML, followed it, confirmed HTTP 200 with ISBN, page count, and back-link all present.
+- Status at time of this entry: feature live and verified on **Dev only** — not yet promoted to QAS/Prd.
+
+---
+
 ### Merged inbox decisions — 2026-08-17T23:57:53Z
 
 #### Scribe (Coordinator)
