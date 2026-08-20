@@ -866,3 +866,122 @@ Total: **18 test cases** covering the advanced filter functionality.
 --
 Author: Scribe
 Date: 2026-08-19T01:01:34Z
+
+
+# UI/UX Decisions: Loading Spinner and Dark Mode Toggle
+
+**Date:** 2026-08-19  
+**Author:** Creta (Frontend Developer)  
+**Issues:** #7 (Loading Spinner), #8 (Dark Mode Toggle)  
+**Status:** Implemented, awaiting merge to decisions.md by Scribe
+
+---
+
+## Issue #7: Loading Spinner during API Calls
+
+### Problem
+Users have no visual feedback while Google Books API search requests are in progress, creating uncertainty about whether the app is working.
+
+### Solution
+Implemented a client-side loading spinner overlay that appears immediately on form submission and pagination link clicks, then disappears when the new page loads.
+
+### Implementation Details
+
+**Approach rationale:**
+- The app uses server-side Razor Pages with full-page POST/GET navigation (not SPA/AJAX)
+- Pure client-side solution with JS event listeners on form submit and pagination clicks
+- No backend changes required
+
+**Components added:**
+
+1. **HTML structure** (Pages/Books.cshtml):
+   - Spinner overlay element (`#search-spinner`) with backdrop and loading indicator
+   - Includes ARIA attributes for accessibility (`aria-hidden`, `role="status"`, visually-hidden status text)
+
+2. **CSS styling** (wwwroot/css/site.css):
+   - Fixed-position overlay (z-index: 9999) covering entire viewport
+   - Semi-transparent backdrop with blur effect
+   - CSS-only animated spinning circle using existing design system color variables
+   - Respects `prefers-reduced-motion` media query (falls back to pulse animation for reduced motion users)
+   - `.is-visible` class toggle controls display
+
+3. **JavaScript behavior** (wwwroot/js/site.js):
+   - Event listener on `#searchForm` submit event
+   - Event listeners on all active pagination links
+   - Shows spinner by adding `.is-visible` class and updating `aria-hidden="false"`
+   - Spinner naturally disappears on page reload (no explicit hide needed)
+
+### Design decisions
+- **No image assets:** Pure CSS spinner keeps assets minimal
+- **Accessibility:** ARIA live regions, visually-hidden status text, reduced-motion support
+- **Theme consistency:** Uses existing CSS custom properties for colors (primary, surface, border)
+- **Progressive enhancement:** Form works without JS; spinner is enhancement only
+
+---
+
+## Issue #8: Dark Mode Toggle
+
+### Problem
+Users lack control over the app's visual theme. A dark mode option improves usability in low-light environments and accommodates user preference.
+
+### Solution
+Implemented a dark mode toggle button in the navbar with persistent theme preference stored in browser localStorage.
+
+### Implementation Details
+
+**Approach rationale:**
+- Leverage existing CSS custom properties architecture for centralized theme control
+- Use `data-theme="dark"` attribute on `<html>` element for scoping
+- Inline `<script>` in `<head>` applies theme before CSS paint to prevent flash of wrong theme
+
+**Components added:**
+
+1. **Toggle button** (Pages/Shared/_Layout.cshtml):
+   - New nav item next to "About" with moon/sun emoji icon (🌙 for light mode, ☀️ for dark mode)
+   - Accessible button with `aria-label` describing current action
+   - No external icon dependencies (Unicode emojis only)
+
+2. **Dark theme CSS** (wwwroot/css/site.css):
+   - `[data-theme="dark"]` selector block redefining all existing CSS custom properties
+   - Dark palette: dark backgrounds (#0f172a, #1e293b), light text (#f1f5f9, #cbd5e1), adjusted primary blue (#60a5fa, #93c5fd)
+   - All existing components (navbar, cards, modals, forms, pagination, book details) automatically adapt via custom properties
+   - Dark gradient background for consistency with light mode's gradient approach
+
+3. **Theme persistence** (wwwroot/js/site.js):
+   - `initThemeToggle()` function reads `localStorage.getItem('theme')` on page load
+   - Toggle button click saves preference with `localStorage.setItem('theme', newTheme)`
+   - Updates icon emoji and `aria-label` to reflect current state
+
+4. **Flash-of-wrong-theme prevention** (_Layout.cshtml `<head>`):
+   - Inline `<script>` before CSS runs immediately on page load
+   - Checks localStorage and applies `data-theme="dark"` attribute synchronously if saved preference is "dark"
+   - Runs before CSS paint, preventing visible theme flash
+
+### Design decisions
+- **No OS preference detection:** Defaulting to light theme keeps behavior predictable; detecting `prefers-color-scheme` would add complexity for minimal benefit
+- **Centralized theming:** Reusing existing custom properties meant only one CSS block (`[data-theme="dark"]`) needed, rather than scattering dark-specific rules throughout selectors
+- **Accessible state feedback:** Icon changes and `aria-label` updates clearly communicate current mode and toggle action
+- **Persistent across sessions:** localStorage ensures theme choice survives browser restarts
+
+### Dark mode color palette
+| Element                  | Light theme      | Dark theme       |
+|--------------------------|------------------|------------------|
+| Background               | #eef7ff          | #0f172a          |
+| Surface (cards, modals)  | #ffffff          | #1e293b          |
+| Primary blue             | #4a90e2          | #60a5fa          |
+| Text                     | #111827          | #f1f5f9          |
+| Text muted               | #475569          | #cbd5e1          |
+| Border                   | #cfe0f2          | #334155          |
+
+---
+
+## Testing performed
+1. ✅ `dotnet build` — 0 errors (1 pre-existing warning unrelated to UI changes)
+2. ✅ `dotnet test GoogleBooksApp.slnx` — All 52 tests pass
+3. ✅ Manual verification of CSS class consistency with existing design system
+
+## Future considerations
+- If AJAX search is implemented later, spinner show/hide logic can be adapted to fetch lifecycle
+- Dark mode could optionally respect OS `prefers-color-scheme` as a fallback if no localStorage preference exists
+- Additional theme variants (high contrast, colorblind-friendly) could follow the same custom-properties pattern
+
