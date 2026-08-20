@@ -985,3 +985,11 @@ Implemented a dark mode toggle button in the navbar with persistent theme prefer
 - Dark mode could optionally respect OS `prefers-color-scheme` as a fallback if no localStorage preference exists
 - Additional theme variants (high contrast, colorblind-friendly) could follow the same custom-properties pattern
 
+## Promotion: Issues #7 and #8 fully promoted — 2026-08-20T01:18:51Z
+
+Summary: Issues #7 (Loading spinner) and #8 (Dark mode toggle) were implemented, promoted through the full dev → qas → main pipeline, deployed to QAS and Prod, and verified live by the Coordinator. PR #17 (dev -> qas) merged and deploy-qas.yml run 32320195895 succeeded. PR #18 (qas -> main) merged and deploy-prd.yml run 32320279396 succeeded. The Coordinator smoke-tested both QAS and Prd sites and confirmed the search-spinner element and theme-toggle/data-theme markup present on both environments. Both GitHub issues were manually closed with comments confirming production deployment.
+
+Decision: Mark issues #7 and #8 as completed and removed from the active backlog.
+
+Author: Scribe
+Date: 2026-08-20T01:18:51Z
