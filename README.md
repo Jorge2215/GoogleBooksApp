@@ -68,5 +68,36 @@ If you need help, check the squad decisions and history files under .squad/ for 
 
 (Documentation last updated: 2026-08-16)
 
-##Resune
+##Prueba de proteccion de ramas en Github
+git checkout qas
+git branch
+echo "Prueba branch protection" > prueba.txt
+git add prueba.txt
+git commit -m "Prueba de branch protection"
+git push origin qas
+(El push debe ser rechazado)
+
+##Para dejar la rama como estaba antes de la Prueba	
+git reset --hard HEAD~1
+git status
+
+##Comandos Pull Request y Merge
+##Versión Completa:
+# Crear PR QAS -> MAIN
+gh pr create --base main --head qas --title "Prueba de aprobación" --body "Solicitud de promoción de cambios de QAS a Main"
+O 
+gh pr create
+Y completar los campos de forma interactiva
+
+# Ver PRs abiertos
+gh pr list
+
+# Luego de la Aprobacion
+Se puede aprobar con linea de comando con:
+gh pr review <numero_PR> --approve
+
+# Merge
+gh pr merge <numero_PR> --merge
+
+##Resume
 copilot --resume=9671a713-a317-4bcc-93bb-118b87b21dc6
