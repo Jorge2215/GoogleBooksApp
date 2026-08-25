@@ -1,0 +1,5 @@
+Record: Issues #7 and #8 promoted to QAS and Prod
+
+Added decision entry to .squad/decisions.md and session log .squad/log/2026-08-20T01-18-51Z-issue7-8-promoted.md
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>

@@ -82,11 +82,11 @@ git reset --hard HEAD~1
 git status
 
 ##Comandos Pull Request y Merge
-Versión Completa:
+##Versión Completa:
 # Crear PR QAS -> MAIN
 gh pr create --base main --head qas --title "Prueba de aprobación" --body "Solicitud de promoción de cambios de QAS a Main"
 O 
-gh pr créate
+gh pr create
 Y completar los campos de forma interactiva
 
 # Ver PRs abiertos
@@ -99,5 +99,5 @@ gh pr review <numero_PR> --approve
 # Merge
 gh pr merge <numero_PR> --merge
 
-##Resune
+##Resume
 copilot --resume=9671a713-a317-4bcc-93bb-118b87b21dc6

@@ -1,0 +1,6 @@
+Scribe: Merge Creta decisions for issues #7 and #8 (spinner, dark mode)
+
+Decisions before: 46588 bytes
+Decisions after: 52673 bytes
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
