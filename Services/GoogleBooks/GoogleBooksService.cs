@@ -271,4 +271,63 @@ public sealed class GoogleBooksService(
 
     private static string BuildEncodedQueryPart(string filter, string value) =>
         Uri.EscapeDataString($"{filter}:\"{value}\"");
+
+    public async Task<BookResult?> GetByIdAsync(string volumeId, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(volumeId))
+        {
+            return null;
+        }
+
+        if (string.IsNullOrWhiteSpace(_options.ApiKey))
+        {
+            _logger.LogWarning("Google Books API key is not configured.");
+            return null;
+        }
+
+        var requestUri = $"volumes/{Uri.EscapeDataString(volumeId)}?key={Uri.EscapeDataString(_options.ApiKey)}";
+
+        try
+        {
+            using var response = await _httpClient.GetAsync(requestUri, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning(
+                    "Google Books API returned status code {StatusCode} for request {RequestUri}.",
+                    (int)response.StatusCode,
+                    requestUri);
+
+                return null;
+            }
+
+            await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            var bookResult = await JsonSerializer.DeserializeAsync<BookResult>(
+                contentStream,
+                SerializerOptions,
+                cancellationToken);
+
+            if (bookResult is null)
+            {
+                _logger.LogWarning("Google Books API returned an empty response body for request {RequestUri}.", requestUri);
+                return null;
+            }
+
+            return bookResult;
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogWarning(ex, "Google Books request failed for {RequestUri}.", requestUri);
+            return null;
+        }
+        catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning(ex, "Google Books request timed out for {RequestUri}.", requestUri);
+            return null;
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogWarning(ex, "Google Books response could not be parsed for {RequestUri}.", requestUri);
+            return null;
+        }
+    }
 }

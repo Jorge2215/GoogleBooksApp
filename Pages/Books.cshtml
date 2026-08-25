@@ -24,7 +24,7 @@
         <p>Find titles, explore authors, and jump straight to the matching Google Books entry.</p>
     </header>
 
-    <form method="post" class="search-form">
+    <form method="post" class="search-form" id="searchForm">
         <div class="search-form__fields">
             <div class="search-form__field">
                 <label asp-for="TitleQuery"></label>
@@ -139,9 +139,10 @@
                             <h2>@title</h2>
                             <p class="result-card__authors">@authorsText</p>
                             <p class="result-card__description">@descriptionText</p>
-                            <p class="result-card__link">
-                                <a href="@previewUrl" target="_blank" rel="noopener noreferrer">View on Google Books</a>
-                            </p>
+                            <div class="result-card__actions">
+                                <a asp-page="/BookDetails" asp-route-id="@item.Id" class="result-card__link">View Details</a>
+                                <a href="@previewUrl" target="_blank" rel="noopener noreferrer" class="result-card__link">View on Google Books</a>
+                            </div>
                         </div>
                     </article>
                 </li>
@@ -190,4 +191,14 @@
             </div>
         </nav>
     }
+
+    <div id="search-spinner" class="search-spinner" aria-hidden="true" aria-live="polite">
+        <div class="search-spinner__backdrop"></div>
+        <div class="search-spinner__content">
+            <div class="search-spinner__loader" role="status">
+                <span class="visually-hidden">Loading search results...</span>
+            </div>
+            <p class="search-spinner__text">Searching books...</p>
+        </div>
+    </div>
 </section>

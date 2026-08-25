@@ -4,6 +4,15 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - GoogleBooksApp</title>
+    <script>
+        // Apply theme immediately to avoid flash
+        (function() {
+            var savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
     <script type="importmap"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -31,6 +40,11 @@
                         </li>
                         <li class="nav-item">
                             <button type="button" class="nav-link site-nav__link border-0 bg-transparent" data-bs-toggle="modal" data-bs-target="#aboutModal">About</button>
+                        </li>
+                        <li class="nav-item">
+                            <button type="button" class="nav-link site-nav__link border-0 bg-transparent" id="themeToggle" aria-label="Toggle dark mode">
+                                <span id="themeIcon">🌙</span>
+                            </button>
                         </li>
                     </ul>
                 </div>
@@ -60,7 +74,7 @@
                 </div>
                 <div class="modal-body about-modal__body">
                     <p>Sample Web App developed by SQUAD Windup Bird Team</p>
-                    <p class="about-modal__version">Version 1.0.2 - Still under development</p>
+                    <p class="about-modal__version">Version 1.0.8 - Still under development but getting better everyday</p>
                 </div>
             </div>
         </div>
