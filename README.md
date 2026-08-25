@@ -68,5 +68,20 @@ If you need help, check the squad decisions and history files under .squad/ for 
 
 (Documentation last updated: 2026-08-16)
 
+##Prueba de proteccion de ramas en Github
+git checkout qas
+git branch
+echo "Prueba branch protection" > prueba.txt
+git add prueba.txt
+git commit -m "Prueba de branch protection"
+git push origin qas
+(El push debe ser rechazado)
+
+Para dejar la rama como estaba antes de la Prueba	
+git reset --hard HEAD~1
+git status
+
+
+
 ##Resune
 copilot --resume=9671a713-a317-4bcc-93bb-118b87b21dc6
