@@ -77,11 +77,27 @@ git commit -m "Prueba de branch protection"
 git push origin qas
 (El push debe ser rechazado)
 
-Para dejar la rama como estaba antes de la Prueba	
+##Para dejar la rama como estaba antes de la Prueba	
 git reset --hard HEAD~1
 git status
 
+##Comandos Pull Request y Merge
+##Versión Completa:
+# Crear PR QAS -> MAIN
+gh pr create --base main --head qas --title "Prueba de aprobación" --body "Solicitud de promoción de cambios de QAS a Main"
+O 
+gh pr create
+Y completar los campos de forma interactiva
 
+# Ver PRs abiertos
+gh pr list
 
-##Resune
+# Luego de la Aprobacion
+Se puede aprobar con linea de comando con:
+gh pr review <numero_PR> --approve
+
+# Merge
+gh pr merge <numero_PR> --merge
+
+##Resume
 copilot --resume=9671a713-a317-4bcc-93bb-118b87b21dc6
