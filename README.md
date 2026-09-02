@@ -109,4 +109,4 @@ gh pr review <numero_PR> --approve
 gh pr merge <numero_PR> --merge
 
 ##Resume
-copilot --resume=9671a713-a317-4bcc-93bb-118b87b21dc6
+copilot --resume=3a51757e-8b78-4fbe-ac54-2049f89b875a
