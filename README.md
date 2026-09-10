@@ -54,8 +54,17 @@ Project structure
 
 Testing
 -------
-- There is no test project in this workspace yet. When a test project (for example, "GoogleBooksApp.Tests") is added, run tests with:
-  dotnet test
+- Fast suite (default):
+  dotnet test GoogleBooksApp.slnx --nologo
+
+- Real Google Books API integration tests:
+  1. Set an API key in your environment, for example:
+     setx GoogleBooks__ApiKey "YOUR_KEY"
+  2. Open a new shell.
+  3. Run:
+     dotnet test GoogleBooksApp.slnx --nologo --filter Category=Integration
+
+- Integration tests are marked with `Category=Integration`, run serially to keep call volume low, and skip automatically when no API key is configured in the environment.
 
 Contributing
 ------------
