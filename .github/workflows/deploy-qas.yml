@@ -24,6 +24,9 @@ jobs:
       - name: Build
         run: dotnet build GoogleBooksApp.csproj --configuration Release
 
+      - name: Run unit test gate
+        run: dotnet test GoogleBooksApp.slnx --configuration Release --filter "Category!=Integration"
+
       - name: Publish
         run: dotnet publish GoogleBooksApp.csproj --configuration Release --output ./publish
 
